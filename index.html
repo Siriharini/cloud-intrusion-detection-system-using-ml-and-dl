@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud IDS Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #06142e, #0b1f4d);
+            color: white;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 42px;
+            font-weight: bold;
+            color: #3db8ff;
+            margin-bottom: 30px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #c7d9f8;
+            margin-top: -15px;
+            margin-bottom: 35px;
+            font-size: 18px;
+        }
+
+        .card {
+            background: rgba(20, 33, 61, 0.95);
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.35);
+            margin-bottom: 25px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .run-btn {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s ease;
+        }
+
+        .run-btn:hover {
+            background: #16a34a;
+            transform: scale(1.03);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 20px;
+        }
+
+        .info-box {
+            background: #1f335c;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .info-title {
+            font-size: 18px;
+            color: #9bc7ff;
+            margin-bottom: 10px;
+        }
+
+        .info-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .normal {
+            color: #22c55e;
+        }
+
+        .attack {
+            color: #ef4444;
+        }
+
+        .risk-high {
+            color: #ef4444;
+        }
+
+        .risk-medium {
+            color: #f59e0b;
+        }
+
+        .risk-low {
+            color: #22c55e;
+        }
+
+        .models {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .model-box {
+            background: #13284d;
+            border-radius: 12px;
+            padding: 18px 25px;
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .logs {
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .log-item {
+            background: #13284d;
+            border-left: 5px solid #3db8ff;
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: #b9c9e8;
+            margin-top: 25px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">Cloud Intrusion Detection System</div>
+        <div class="subtitle">Hybrid ML & DL Based Real-Time Security Dashboard</div>
+
+        <div class="card center">
+            <h2>Run Threat Analysis</h2>
+            <p>Click the button to analyze a random network traffic sample from the trained KDD dataset.</p>
+            <button class="run-btn" onclick="runDetection()">Run Detection</button>
+        </div>
+
+        <div class="grid">
+            <div class="info-box">
+                <div class="info-title">Detection Status</div>
+                <div class="info-value" id="status">-</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-title">Attack Type</div>
+                <div class="info-value" id="attackType">-</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-title">Confidence Score</div>
+                <div class="info-value" id="confidence">-</div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-title">Risk Level</div>
+                <div class="info-value" id="risk">-</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="text-align:center;">Model Outputs</h2>
+            <div class="models">
+                <div class="model-box">
+                    <div class="info-title">Random Forest</div>
+                    <div class="info-value" id="rfResult">-</div>
+                </div>
+                <div class="model-box">
+                    <div class="info-title">ANN Model</div>
+                    <div class="info-value" id="annResult">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="text-align:center;">Recent Detection Logs</h2>
+            <div class="logs" id="logs"></div>
+        </div>
+
+        <div class="footer-note">
+            Deployed on AWS | Final Year Project Dashboard
+        </div>
+    </div>
+
+    <script>
+        let logCount = 0;
+
+        function runDetection() {
+            fetch('/predict')
+                .then(response => response.json())
+                .then(data => {
+                    const statusEl = document.getElementById('status');
+                    const attackTypeEl = document.getElementById('attackType');
+                    const confidenceEl = document.getElementById('confidence');
+                    const riskEl = document.getElementById('risk');
+                    const rfEl = document.getElementById('rfResult');
+                    const annEl = document.getElementById('annResult');
+
+                    statusEl.innerText = data.status;
+                    attackTypeEl.innerText = data.attack_type;
+                    confidenceEl.innerText = data.confidence;
+                    riskEl.innerText = data.risk;
+                    rfEl.innerText = data.rf_result;
+                    annEl.innerText = data.ann_result;
+
+                    statusEl.className = "info-value " + (data.status === "Attack" ? "attack" : "normal");
+                    rfEl.className = "info-value " + (data.rf_result === "Attack" ? "attack" : "normal");
+                    annEl.className = "info-value " + (data.ann_result === "Attack" ? "attack" : "normal");
+
+                    if (data.risk === "High") {
+                        riskEl.className = "info-value risk-high";
+                    } else if (data.risk === "Medium") {
+                        riskEl.className = "info-value risk-medium";
+                    } else {
+                        riskEl.className = "info-value risk-low";
+                    }
+
+                    logCount++;
+                    const logs = document.getElementById('logs');
+                    const logItem = document.createElement('div');
+                    logItem.className = 'log-item';
+                    logItem.innerHTML = `<strong>Log ${logCount}:</strong> Status = ${data.status}, Attack Type = ${data.attack_type}, Confidence = ${data.confidence}, Risk = ${data.risk}`;
+                    logs.prepend(logItem);
+                });
+        }
+    </script>
+</body>
+</html>
